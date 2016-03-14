@@ -1,0 +1,22 @@
+html, body{
+	width:100%;
+	height:100%;
+	margin:0;
+	font-family:"MetricWeb",Arial,sans-serif;
+	font-size:18px;
+	color:#333;
+	box-sizing:border-box;
+	/*background-color:#fff1e0;*/
+}
+
+#graphic{
+	position:fixed;
+	/*background-color:#af516c;*/
+}
+
+.caption{
+	font-size:5em;
+	position:relative;
+	z-index:1000;
+	/*color:white;*/
+}

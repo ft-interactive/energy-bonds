@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en-GB" class="o-hoverable-on">
+    <head>
+    	<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,user-scalable=no">
+		<title></title>
+
+	    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	    <script src="d3-jetpack.js"></script>
+	    <script src="saveSvgAsPng.js"></script>
+	    <script charset="utf-8" src="queue.js"></script>
+
+	    <link rel="stylesheet" href="main.css"/>
+	    <link rel="stylesheet" href="//build.origami.ft.com/v2/bundles/css?modules=o-fonts@^1.8.2,o-ft-icons@^2.3.7,o-grid@^4.0.0,o-footer@^4.1.0,o-hoverable@^3.0.0" />
+
+	    <style media="screen">
+	  	</style>
+  	</head>
+	<body>
+
+		<div id="container">
+			<div id="graphic"></div>
+			<div class="caption">0</div>
+			<div class="caption">1</div>
+			<div class="caption">2</div>
+			<div class="caption">3</div>
+			<div class="caption">4</div>
+			<div class="caption">5</div>
+		</div>
+  		<script charset="utf-8">
+	        
+	        function debounce(func, wait, immediate) {
+	            var timeout;
+	            return function() {
+	            var context = this, args = arguments;
+	            var later = function() {
+	            timeout = null;
+	            if (!immediate) func.apply(context, args);
+	            };
+	            var callNow = immediate && !timeout;
+	            clearTimeout(timeout);
+	            timeout = setTimeout(later, wait);
+	            if (callNow) func.apply(context, args);
+	            };
+	        };
+
+	        function getPosition(element) {
+	            var xPosition = 0;
+	            var yPosition = 0;
+
+	            while(element) {
+	                xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+	                yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+	                element = element.offsetParent;
+	            }
+
+	            if ((window.scrollY != 0 && navigator.userAgent.indexOf("Firefox") > 0)){
+	                xPosition = xPosition-window.scrollY;
+	                yPosition = yPosition-window.scrollY;
+	            }else{
+	            }
+
+	            return { x: xPosition, y: yPosition };
+	        };
+
+			var slide=0,oldSlide=0,swipe0,swipe1;
+
+			var boom = function(){
+				indicator
+            		.transition()
+            		.duration(250)
+            		.attr({
+            			r:Math.min(width,height)/2
+            		})
+            		.transition()
+            		.delay(250)
+            		.duration(250)
+            		.attr({
+            			r:10
+            		})
+			}
+
+  			var container = d3.select("body"),
+  				width = window.innerWidth,
+  				height = window.innerHeight;
+
+			var graphic = d3.select('#graphic')
+			.style({
+				width:width + 'px',
+				height:height + 'px'
+			});
+
+			d3.select('body')
+			.on('touchstart',function(){
+				swipe0 = d3.event.changedTouches[0].clientY;
+			})
+			.on('touchmove',function(){
+				swipe1 = d3.event.changedTouches[0].clientY;
+			})
+			.on('touchend',function(){
+				if(swipe0 - swipe1 > height/2){
+					console.log("Next");
+					window.scrollTo(0,height*slide);
+					oldSlide = +JSON.stringify(slide);
+					slide = slide+1;
+					boom();
+				}else if(swipe0 - swipe1 < -height/2){
+					console.log("Back");
+					window.scrollTo(0,height*(slide-2));
+					oldSlide = +JSON.stringify(slide);
+					slide = slide-1;
+					boom();
+				}
+			});
+
+			var svg = graphic.append("svg")
+			.attr({
+				width:width,
+				height:height
+			});
+
+			var indicator = svg.append('circle#indicator')
+			.attr({
+				cx:width/2,
+				cy:height/2,
+				r:10
+			})
+			.style({
+				fill:'#222'
+			});
+
+  			var captions = d3.selectAll(".caption")
+  			.style({height:height + 'px'}), slides=captions.length;
+
+	        var positions = [];
+	        captions.each(function(){
+	            positions.push(getPosition(d3.select(this).node()).y)
+	        });
+
+	        slide = d3.bisect(positions,0), oldSlide = slide;
+
+	        if(width > 768){
+		        d3.select(window).on('scroll',debounce(function(){
+	                animate();
+	            },10));
+	    	}
+
+            var animate = function(){
+
+            	oldSlide = +JSON.stringify(slide);
+            	var fromTop = window.scrollY;
+            	slide = d3.bisect(positions,fromTop);
+            	console.log(oldSlide,slide);
+
+            	if(slide!=oldSlide){
+            		boom();
+            	}
+
+            };
+
+  		</script>
+	</body>
+</html>
